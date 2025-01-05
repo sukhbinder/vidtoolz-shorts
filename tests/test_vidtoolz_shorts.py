@@ -10,8 +10,13 @@ def test_create_parser():
 
     assert parser is not None
 
-    result = parser.parse_args(["--test", "hello"])
-    assert result.test == ["hello"]
+    result = parser.parse_args(["hello"])
+    assert result.filename == "hello"
+    assert result.text_file is None
+    assert len(result.input) == 0
+    assert result.time == 60
+    assert result.startat == 0.0
+    assert result.ratio == 1.0
 
 
 def test_plugin(capsys):
