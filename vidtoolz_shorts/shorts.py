@@ -1,13 +1,12 @@
-import moviepy.editor as mpy
+import moviepy as mpy
 import os
 import textwrap
 import numpy as np
-import vidmake.app as app
 import subprocess
 import argparse
-import moviepy.video.fx.all as vfx
+from moviepy import vfx
 from itertools import cycle
-
+from moviepy.tools import convert_to_seconds
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _ASSETS = os.path.join(_HERE, "assets")
@@ -15,13 +14,13 @@ _ASSETS = os.path.join(_HERE, "assets")
 
 def create_shorts_from_vid(fname, startat=0.0, crop_ratio=1):
     clip = mpy.VideoFileClip(fname)
-    clip = clip.subclip(t_start=startat)
+    clip = clip.subclipped(start_time=startat)
     w, h = clip.size
 
     # crop_ratio = 1 #  4/5 # 9/16
     crop_width = h * crop_ratio
     x1, x2 = (w - crop_width) // 2, (w + crop_width) // 2
-    cclip = clip.crop(x1=x1, y1=0, x2=x2, y2=h)
+    cclip = clip.cropped(x1=x1, y1=0, x2=x2, y2=h)
 
     return cclip
 
@@ -41,15 +40,15 @@ def zoom_in_out(t):
 def get_text_clips_n_notification(textlist, clip_time=60, height=800, wid=688, size=20):
     # colors from https://imagemagick.org/script/color.php
     colors = [
-        "plum1",
-        "LightSteelBlue1",
+        "plum",
+        "LightSteelBlue",
         "LightSkyBlue",
-        "turquoise1",
+        "turquoise",
         "SpringGreen",
-        "LightGoldenrod1",
-        "DarkGoldenrod1",
+        # "LightGoldenrod",
+        # "DarkGoldenrod",
         "DarkOrange",
-        "OliveDrab1",
+        "OliveDrab",
         "yellow",
     ]
 
@@ -58,7 +57,7 @@ def get_text_clips_n_notification(textlist, clip_time=60, height=800, wid=688, s
 
     cols = cycle(colors)
     if clip_time > 6:
-        textlist.append("Visit @humhairahi channel for full Videos!")
+        textlist.append("Visit the channel for full Videos!")
 
     text_clips = []
     notification_sounds = []
@@ -75,38 +74,39 @@ def get_text_clips_n_notification(textlist, clip_time=60, height=800, wid=688, s
         # color="white"
         text_hight = 60  # max(200, nline*fontsize)
         txt = mpy.TextClip(
-            return_comment,
-            font="Keep-Calm-Medium",  # font='Courier',
-            fontsize=fontsize,
+            font="Courier",
+            text=return_comment,
+            font_size=fontsize,
             bg_color=color,
             size=(wid + 5, text_hight + 10),
             method="caption",
-            stroke_width=1.5,
+            stroke_width=2,
             stroke_color="black",
-            kerning=2,
             color="white",
         )
 
         # txt = txt.on_color(size=(txt.w+10,txt.h-10),
         #          color=(0,0,0), pos=(6,'center'), col_opacity=0.6)
-        txt = txt.on_color(col_opacity=0.4)
-        txt = txt.set_position((0, 100))
-        txt = txt.set_start((0, 0 + (i * interval)))
-        txt = txt.set_duration(interval + 1)
-        txt = txt.crossfadein(0.5)
-        txt = txt.crossfadeout(0.5)
+        # txt = txt.with_background_color(col_opacity=0.4)
+        txt = txt.with_position((0, 100))
+        txt = txt.with_start((0, 0 + (i * interval)))
+        txt = txt.with_duration(interval + 1)
+        # txt = txt.crossfadein(0.5)
+        txt = txt.with_effects([vfx.CrossFadeIn(0.5)])
+        txt = txt.with_effects([vfx.CrossFadeOut(0.5)])
+        # txt = txt.crossfadeout(0.5)
         # animation
-        txt = txt.resize(zoom_in_out)
+        txt = txt.resized(zoom_in_out)
         text_clips.append(txt)
         print(color, i, 0 + (i * interval))
 
         notification = mpy.AudioFileClip(notification_fname)
-        notification = notification.set_start((0, 0 + (i * interval)))
+        notification = notification.with_start((0, 0 + (i * interval)))
         notification_sounds.append(notification)
 
     if clip_time > 6:
         subscribe = mpy.AudioFileClip(subcribe_fname)
-        subscribe = subscribe.set_start((0, clip_time - 6))
+        subscribe = subscribe.with_start((0, clip_time - 6))
         notification_sounds.append(subscribe)
     return text_clips, notification_sounds
 
@@ -124,7 +124,7 @@ def mainrun(args):
 
     print(TEXTLIST)
 
-    start_time = mpy.cvsecs(args.startat)
+    start_time = convert_to_seconds(args.startat)
 
     cclip = create_shorts_from_vid(fname, startat=start_time, crop_ratio=args.ratio)
     # if Duration is given as negative use the entire Duration of the clip
@@ -132,7 +132,7 @@ def mainrun(args):
         clip_time = cclip.duration
     else:
         clip_time = min(cclip.duration, args.time)
-    cclip = cclip.subclip(0, clip_time)
+    cclip = cclip.subclipped(0, clip_time)
     audio = cclip.audio
 
     w, h = cclip.size
@@ -143,7 +143,8 @@ def mainrun(args):
 
     clip = mpy.CompositeVideoClip([cclip] + texclips)
     clip.audio = new_audioclip
-    clip.fadeout(1)
+    # clip.fadeout(1)
+    clip = clip.with_effects([vfx.FadeOut(1)])
 
     dirname = os.path.dirname(fname)
     basename = os.path.basename(fname)
@@ -155,7 +156,8 @@ def mainrun(args):
             fout.write("\n".join(TEXTLIST[:-1]))
 
     # make loopable
-    clip = vfx.make_loopable(clip, 1)
+    # clip = vfx.make_loopable(clip, 1)
+    clip = clip.with_effects([vfx.MakeLoopable(1)])
 
     clip.write_videofile(
         outpath,
