@@ -1,6 +1,6 @@
 [project]
 name = "vidtoolz-shorts"
-version = "0.0.1"
+version = "0.0.2"
 description = "Create shorts from long form videos"
 readme = "README.md"
 authors = [{name = "Sukhbinder Singh"}]

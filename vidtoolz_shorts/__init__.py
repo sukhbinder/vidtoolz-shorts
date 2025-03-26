@@ -52,11 +52,15 @@ def create_parser(subparser):
         default=1.0,
     )
 
+    parser.add_argument(
+        "-o", "--output", type=str, default=None, help="Path to save the trimmed video."
+    )
+
     return parser
 
 
 class ViztoolzPlugin:
-    """ Create shorts from long form videos """
+    """Create shorts from long form videos"""
 
     __name__ = "shorts"
 

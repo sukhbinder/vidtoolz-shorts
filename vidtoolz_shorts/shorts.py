@@ -12,6 +12,19 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _ASSETS = os.path.join(_HERE, "assets")
 
 
+def determine_output_path(input_file, output_file):
+    input_dir, input_filename = os.path.split(input_file)
+    name, _ = os.path.splitext(input_filename)
+
+    if output_file:
+        output_dir, output_filename = os.path.split(output_file)
+        if not output_dir:  # If no directory is specified, use input file's directory
+            return os.path.join(input_dir, output_filename)
+        return output_file
+    else:
+        return os.path.join(input_dir, f"{name}_shorts.mp4")
+
+
 def create_shorts_from_vid(fname, startat=0.0, crop_ratio=1):
     clip = mpy.VideoFileClip(fname)
     clip = clip.subclipped(start_time=startat)
@@ -115,6 +128,8 @@ def mainrun(args):
 
     fname = args.filename.strip()
 
+    output = determine_output_path(fname, args.output)
+
     TEXTLIST = []
     if args.text_file is not None:
         with open(args.text_file, "r") as fin:
@@ -147,8 +162,9 @@ def mainrun(args):
     clip = clip.with_effects([vfx.FadeOut(1)])
 
     dirname = os.path.dirname(fname)
-    basename = os.path.basename(fname)
-    outpath = os.path.join(dirname, "Shorts_{}".format(basename))
+    # basename = os.path.basename(fname)
+    # outpath = os.path.join(dirname, "Shorts_{}".format(basename))
+    outpath = output
     outpath_tx = os.path.join(dirname, "Shorts.txt")
 
     if args.text_file is None:
