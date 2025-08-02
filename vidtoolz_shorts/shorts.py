@@ -2,8 +2,6 @@ import moviepy as mpy
 import os
 import textwrap
 import numpy as np
-import subprocess
-import argparse
 from moviepy import vfx
 from itertools import cycle
 from moviepy.tools import convert_to_seconds
@@ -12,7 +10,28 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _ASSETS = os.path.join(_HERE, "assets")
 
 
-def determine_output_path(input_file, output_file):
+def construct_prefix(input_args):
+    """
+    Flattens the nested list from --input and joins all elements with underscores.
+
+    Args:
+        input_args (list): A nested list of inputs passed to --input.
+                           Example: [['hello', 'world'], ['foo']] -> "hello_world_foo"
+
+    Returns:
+        str: A single string with all inputs joined by underscores.
+    """
+    if not input_args:
+        return "shorts"
+
+    # Flatten the nested list structure (because action="append", nargs="*")
+    flat_inputs = [item for sublist in input_args for item in sublist] + ["#shorts"]
+
+    # Join with underscores
+    return "_".join(flat_inputs)
+
+
+def determine_output_path(input_file, output_file, prefix):
     input_dir, input_filename = os.path.split(input_file)
     name, _ = os.path.splitext(input_filename)
 
@@ -22,7 +41,7 @@ def determine_output_path(input_file, output_file):
             return os.path.join(input_dir, output_filename)
         return output_file
     else:
-        return os.path.join(input_dir, f"{name}_shorts.mp4")
+        return os.path.join(input_dir, f"{name}_{prefix}.mp4")
 
 
 def create_shorts_from_vid(fname, startat=0.0, crop_ratio=1):
@@ -128,7 +147,8 @@ def mainrun(args):
 
     fname = args.filename.strip()
 
-    output = determine_output_path(fname, args.output)
+    prefix = construct_prefix(args.input)
+    output = determine_output_path(fname, args.output, prefix)
 
     TEXTLIST = []
     if args.text_file is not None:
