@@ -56,6 +56,9 @@ def create_parser(subparser):
         "-o", "--output", type=str, default=None, help="Path to save the trimmed video."
     )
 
+    parser.add_argument(
+        "--no-clipping", action="store_true", help="If provided, clip is kept as the input size. Used for video already in 16x9 size"
+    )
     return parser
 
 
