@@ -1,5 +1,5 @@
 import vidtoolz
-from vidtoolz_shorts.shorts import mainrun
+from vidtoolz_shorts.shorts import mainrun, mainrun_ffmpeg
 
 
 def create_parser(subparser):
@@ -59,6 +59,11 @@ def create_parser(subparser):
     parser.add_argument(
         "--no-clipping", action="store_true", help="If provided, clip is kept as the input size. Used for video already in 16x9 size"
     )
+    parser.add_argument(
+        "--ffmpeg",
+        action="store_true",
+        help="Use ffmpeg instead of MoviePy for rendering.",
+    )
     return parser
 
 
@@ -73,7 +78,10 @@ class ViztoolzPlugin:
         self.parser.set_defaults(func=self.run)
 
     def run(self, args):
-        mainrun(args)
+        if args.ffmpeg:
+            mainrun_ffmpeg(args)
+        else:
+            mainrun(args)
 
     def hello(self, args):
         # this routine will be called when "vidtoolz "shorts is called."

@@ -26,7 +26,7 @@ type ``vidtoolz-shorts --help`` to get help
 
 ```bash
 usage: vid shorts [-h] [-t TEXT_FILE] [-i [INPUT ...]] [-d TIME] [-st STARTAT]
-                  [-r RATIO] [-o OUTPUT]
+                  [-r RATIO] [-o OUTPUT] [--no-clipping] [--ffmpeg]
                   filename
 
 Create shorts from long form videos
@@ -49,6 +49,9 @@ optional arguments:
                         1.0)
   -o OUTPUT, --output OUTPUT
                         Path to save the trimmed video.
+  --no-clipping         If provided, clip is kept as the input size. Used for
+                        video already in 16x9 size
+  --ffmpeg              Use ffmpeg instead of MoviePy for rendering.
 ```
 
 
