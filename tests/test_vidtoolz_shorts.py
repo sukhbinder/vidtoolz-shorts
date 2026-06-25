@@ -20,6 +20,16 @@ def test_create_parser():
     assert result.time == 60
     assert result.startat == 0.0
     assert result.ratio == 1.0
+    assert result.ffmpeg is False
+
+
+def test_create_parser_ffmpeg():
+    subparser = ArgumentParser().add_subparsers()
+    parser = w.create_parser(subparser)
+
+    result = parser.parse_args(["hello", "--ffmpeg"])
+
+    assert result.ffmpeg is True
 
 
 def test_plugin(capsys):
@@ -39,7 +49,39 @@ def test_realcase_shorts(tmpdir):
     subparser = ArgumentParser().add_subparsers()
     parser = w.create_parser(subparser)
 
-    argv = [str(introfile), "-o", str(outfile), "-i", "Hello", "-i", "World"]
+    argv = [
+        str(introfile),
+        "-o",
+        str(outfile),
+        "-i",
+        "Hello",
+        "-i",
+        "World",
+    ]
+    args = parser.parse_args(argv)
+    args.func = None
+    w.shorts_plugin.run(args)
+    assert outfile.exists()
+
+
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Test doesn't work in Github Actions.")
+def test_realcase_shorts_ffmpeg(tmpdir):
+    outfile = tmpdir / "test_intro.mp4"
+    testdata = Path(__file__).parent / "test_data"
+    introfile = testdata / "test.mp4"
+    subparser = ArgumentParser().add_subparsers()
+    parser = w.create_parser(subparser)
+
+    argv = [
+        str(introfile),
+        "-o",
+        str(outfile),
+        "-i",
+        "Hello",
+        "-i",
+        "World",
+        "--ffmpeg",
+    ]
     args = parser.parse_args(argv)
     args.func = None
     w.shorts_plugin.run(args)
