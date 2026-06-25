@@ -42,6 +42,29 @@ IN_GITHUB_ACTIONS = os.getenv("GITHUB_ACTIONS") == "true"
 
 
 @pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Test doesn't work in Github Actions.")
+def test_realcase_shorts(tmpdir):
+    outfile = tmpdir / "test_intro.mp4"
+    testdata = Path(__file__).parent / "test_data"
+    introfile = testdata / "test.mp4"
+    subparser = ArgumentParser().add_subparsers()
+    parser = w.create_parser(subparser)
+
+    argv = [
+        str(introfile),
+        "-o",
+        str(outfile),
+        "-i",
+        "Hello",
+        "-i",
+        "World",
+    ]
+    args = parser.parse_args(argv)
+    args.func = None
+    w.shorts_plugin.run(args)
+    assert outfile.exists()
+
+
+@pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Test doesn't work in Github Actions.")
 def test_realcase_shorts_ffmpeg(tmpdir):
     outfile = tmpdir / "test_intro.mp4"
     testdata = Path(__file__).parent / "test_data"
